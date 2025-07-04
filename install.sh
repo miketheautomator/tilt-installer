@@ -107,6 +107,13 @@ install_docker() {
 get_api_key() {
     mkdir -p "$CONFIG_DIR"
     
+    # Check if API key is provided via environment variable
+    if [ -n "$ANTHROPIC_API_KEY" ]; then
+        echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" > "$ENV_FILE"
+        echo -e "${GREEN}✓ Using API key from environment variable${NC}"
+        return
+    fi
+    
     if [ -f "$ENV_FILE" ] && grep -q "ANTHROPIC_API_KEY=" "$ENV_FILE"; then
         local existing_key
         existing_key=$(grep "ANTHROPIC_API_KEY=" "$ENV_FILE" | cut -d'=' -f2)
@@ -121,6 +128,17 @@ get_api_key() {
     echo -e "${YELLOW}Get one at: https://console.anthropic.com/${NC}"
     echo ""
     
+    # Check if running in a pipe (from curl)
+    if [ ! -t 0 ]; then
+        echo -e "${RED}❌ Cannot read API key when running from pipe${NC}"
+        echo -e "${YELLOW}Please run the installer directly:${NC}"
+        echo -e "${YELLOW}  1. Download: curl -sSL install.whytilt.com > install.sh${NC}"
+        echo -e "${YELLOW}  2. Run: bash install.sh${NC}"
+        echo -e "${YELLOW}Or set the API key as an environment variable:${NC}"
+        echo -e "${YELLOW}  ANTHROPIC_API_KEY=your_key curl -sSL install.whytilt.com | bash${NC}"
+        exit 1
+    fi
+
     while true; do
         echo -n "Enter your Anthropic API key: "
         read -r api_key
