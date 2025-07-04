@@ -128,15 +128,9 @@ get_api_key() {
     echo -e "${YELLOW}Get one at: https://console.anthropic.com/${NC}"
     echo ""
     
-    # Check if running in a pipe (from curl)
-    if [ ! -t 0 ]; then
-        echo -e "${RED}❌ Cannot read API key when running from pipe${NC}"
-        echo -e "${YELLOW}Please run the installer directly:${NC}"
-        echo -e "${YELLOW}  1. Download: curl -sSL install.whytilt.com > install.sh${NC}"
-        echo -e "${YELLOW}  2. Run: bash install.sh${NC}"
-        echo -e "${YELLOW}Or set the API key as an environment variable:${NC}"
-        echo -e "${YELLOW}  ANTHROPIC_API_KEY=your_key curl -sSL install.whytilt.com | bash${NC}"
-        exit 1
+    # Try to read from /dev/tty if available (works even when piped)
+    if [ -r /dev/tty ]; then
+        exec < /dev/tty
     fi
 
     while true; do
