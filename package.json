@@ -1,0 +1,24 @@
+{
+  "name": "tilt-installer",
+  "version": "1.0.0",
+  "description": "One-command installer for Tilt - Advanced Computer Automation",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static site - no build needed'",
+    "deploy": "vercel --prod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WhyTilt/tilt-installer.git"
+  },
+  "keywords": [
+    "tilt",
+    "automation",
+    "installer",
+    "docker",
+    "ai"
+  ],
+  "author": "WhyTilt",
+  "license": "MIT",
+  "homepage": "https://install.whytilt.com"
+}
