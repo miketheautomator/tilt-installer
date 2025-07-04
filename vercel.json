@@ -2,20 +2,8 @@
   "outputDirectory": ".",
   "rewrites": [
     {
-      "source": "/web",
-      "destination": "/index.html"
-    }
-  ],
-  "redirects": [
-    {
       "source": "/",
-      "destination": "/install.sh",
-      "permanent": false
-    },
-    {
-      "source": "/install",
-      "destination": "/install.sh",
-      "permanent": false
+      "destination": "/install.sh"
     }
   ],
   "headers": [
