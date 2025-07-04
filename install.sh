@@ -103,59 +103,10 @@ install_docker() {
     esac
 }
 
-# Get Anthropic API key
-get_api_key() {
+# Create config directory
+create_config() {
     mkdir -p "$CONFIG_DIR"
-    
-    # Check if API key is provided via environment variable
-    if [ -n "$ANTHROPIC_API_KEY" ]; then
-        echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" > "$ENV_FILE"
-        echo -e "${GREEN}✓ Using API key from environment variable${NC}"
-        return
-    fi
-    
-    if [ -f "$ENV_FILE" ] && grep -q "ANTHROPIC_API_KEY=" "$ENV_FILE"; then
-        local existing_key
-        existing_key=$(grep "ANTHROPIC_API_KEY=" "$ENV_FILE" | cut -d'=' -f2)
-        if [ -n "$existing_key" ] && [ "$existing_key" != "your_api_key_here" ]; then
-            echo -e "${GREEN}✓ Found existing API key${NC}"
-            return
-        fi
-    fi
-    
-    echo -e "${BLUE}🔑 Anthropic API Key Setup${NC}"
-    echo -e "${YELLOW}You need an Anthropic API key to use Tilt.${NC}"
-    echo -e "${YELLOW}Get one at: https://console.anthropic.com/${NC}"
-    echo ""
-    
-    # Try to read from /dev/tty if available (works even when piped)
-    if [ -r /dev/tty ]; then
-        exec < /dev/tty
-    fi
-
-    while true; do
-        echo -n "Enter your Anthropic API key: "
-        read -r api_key
-        
-        if [ -z "$api_key" ]; then
-            echo -e "${RED}❌ API key cannot be empty${NC}"
-            continue
-        fi
-        
-        if [[ ! "$api_key" =~ ^sk-ant-api03- ]]; then
-            echo -e "${YELLOW}⚠️  This doesn't look like a valid Anthropic API key (should start with sk-ant-api03-)${NC}"
-            echo -n "Continue anyway? (y/N): "
-            read -r confirm
-            if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-                continue
-            fi
-        fi
-        
-        break
-    done
-    
-    echo "ANTHROPIC_API_KEY=$api_key" > "$ENV_FILE"
-    echo -e "${GREEN}✓ API key saved${NC}"
+    echo -e "${GREEN}✓ Config directory created${NC}"
 }
 
 # Pull Docker image
@@ -192,10 +143,7 @@ DOCKER_IMAGE="whytilt/tilt:latest"
 CONFIG_DIR="$HOME/.config/tilt"
 ENV_FILE="$CONFIG_DIR/.env"
 
-# Load environment variables
-if [ -f "$ENV_FILE" ]; then
-    export $(grep -v '^#' "$ENV_FILE" | xargs)
-fi
+# Note: API key will be requested by the app itself
 
 # Create data directories
 mkdir -p "$HOME/.tilt/user_data"
@@ -205,7 +153,6 @@ mkdir -p "$HOME/.tilt/db_data"
 # Function to run Tilt
 run_tilt() {
     docker run --rm -it \
-        -e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
         -e DEV_MODE=false \
         -v /etc/timezone:/etc/timezone:ro \
         -v /etc/localtime:/etc/localtime:ro \
@@ -275,11 +222,6 @@ HELP
 # Parse command
 case "${1:-start}" in
     start|"")
-        if [ -z "$ANTHROPIC_API_KEY" ]; then
-            echo "❌ ANTHROPIC_API_KEY not found. Please run the installer again or set it manually:"
-            echo "   export ANTHROPIC_API_KEY=your_key_here"
-            exit 1
-        fi
         echo "🚀 Starting Tilt..."
         echo "📱 Open http://localhost:3001 in your browser"
         run_tilt
@@ -329,7 +271,7 @@ test_installation() {
 main() {
     detect_platform
     check_docker
-    get_api_key
+    create_config
     pull_image
     create_command
     test_installation
@@ -342,14 +284,12 @@ main() {
     echo -e "   ${YELLOW}tilt${NC}                 # Start Tilt"
     echo -e "   ${YELLOW}tilt stop${NC}            # Stop Tilt"
     echo -e "   ${YELLOW}tilt update${NC}          # Update Tilt"
-    echo -e "   ${YELLOW}tilt help${NC}            # Show help"
     echo ""
-    echo -e "${BLUE}🌐 Access URLs:${NC}"
-    echo -e "   Frontend:    ${YELLOW}http://localhost:3001${NC}"
-    echo -e "   API:         ${YELLOW}http://localhost:8000${NC}"
-    echo -e "   Desktop:     ${YELLOW}http://localhost:6080/vnc.html${NC}"
+    echo -e "${BLUE}🌐 Access Tilt:${NC}"
+    echo -e "   ${YELLOW}http://localhost:3001${NC}"
     echo ""
-    echo -e "${BLUE}📚 Documentation: ${YELLOW}https://whytilt.com${NC}"
+    echo -e "${YELLOW}💡 The app will ask for your Anthropic API key when you first run it${NC}"
+    echo -e "${BLUE}📚 Get an API key at: ${YELLOW}https://console.anthropic.com/${NC}"
     echo ""
     echo -e "${GREEN}Happy automating! 🤖${NC}"
 }
